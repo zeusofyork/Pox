@@ -34,11 +34,7 @@ android {
 }
 
 
-    repositories {
-
-        jcenter() 
-
-    }
+   
 
 
 dependencies {
