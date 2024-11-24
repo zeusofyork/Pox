@@ -38,6 +38,6 @@ jcenter()}
 
 dependencies {
     implementation'androidx.appcompat:appcompat:1.6.1'
-compileOnly 'de.robv.androjid.xposed:api:82
+compileOnly 'de.robv.androjid.xposed:api:82'
     
 }
