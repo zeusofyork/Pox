@@ -49,11 +49,17 @@ jobs:
         cd libxposed/service
         ./gradlew :interface:publishInterfacePublicationToMavenLocal
 
-    # Step 8: Dynamically Disable R8 and Shrinking in Release Build
+    # Step 8: Log Directory Structure
+    - name: Log Directory Structure
+      run: |
+        echo "Logging directory structure for lsposed..."
+        ls -R lsposed
+
+    # Step 9: Dynamically Disable R8 and Shrinking in Release Build
     - name: Disable R8 for Release Build
       run: |
         echo "Disabling R8 and code shrinking for all build.gradle files..."
-        gradle_files=$(find lsposed -name "build.gradle")
+        gradle_files=$(find lsposed -type f -name "build.gradle")
         if [ -z "$gradle_files" ]; then
           echo "No build.gradle files found!"
           exit 1
@@ -65,7 +71,7 @@ jobs:
           sed -i 's/proguardFiles getDefaultProguardFile.*//' "$gradle_file"
         done
 
-    # Step 9: Cache Gradle dependencies
+    # Step 10: Cache Gradle dependencies
     - name: Cache Gradle dependencies
       uses: actions/cache@v3
       with:
@@ -74,14 +80,14 @@ jobs:
         restore-keys: |
           ${{ runner.os }}-gradle-
 
-    # Step 10: Build the LSPosed Release APK
+    # Step 11: Build the LSPosed Release APK
     - name: Build LSPosed Release APK
       run: |
         echo "Building LSPosed Release APK..."
         cd lsposed
         ./gradlew assembleRelease
 
-    # Step 11: Upload the APK as a build artifact
+    # Step 12: Upload the APK as a build artifact
     - name: Upload APK
       uses: actions/upload-artifact@v3
       with:
