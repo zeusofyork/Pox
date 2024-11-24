@@ -58,16 +58,16 @@ jobs:
         restore-keys: |
           ${{ runner.os }}-gradle-
 
-    # Step 9: Build the LSPosed APK
-    - name: Build LSPosed APK
+    # Step 9: Build the LSPosed Release APK
+    - name: Build LSPosed Release APK
       run: |
-        echo "Building LSPosed APK..."
+        echo "Building LSPosed Release APK..."
         cd lsposed
-        ./gradlew assembleDebug
+        ./gradlew assembleRelease
 
     # Step 10: Upload the APK as a build artifact
     - name: Upload APK
       uses: actions/upload-artifact@v3
       with:
         name: LSPosed-Module-APK
-        path: lsposed/app/build/outputs/apk/debug/*.apk
+        path: lsposed/app/build/outputs/apk/release/*.apk
