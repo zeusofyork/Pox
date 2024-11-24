@@ -28,20 +28,20 @@ jobs:
     - name: Clone libxposed Service
       run: git clone --depth=1 https://github.com/libxposed/service.git libxposed/service
 
-    # Step 5: Set up JDK 17
-    - name: Set up JDK 17
+    # Step 5: Set up JDK 21
+    - name: Set up JDK 21
       uses: actions/setup-java@v3
       with:
-        java-version: '17'
+        java-version: '21'
         distribution: 'temurin'
 
-    # Step 6: Build and publish libxposed/api to Maven Local
+    # Step 6: Build and publish libxposed API to Maven Local
     - name: Publish libxposed API to Maven Local
       run: |
         cd libxposed/api
         ./gradlew :api:publishApiPublicationToMavenLocal
 
-    # Step 7: Build and publish libxposed/service to Maven Local
+    # Step 7: Build and publish libxposed Service to Maven Local
     - name: Publish libxposed Service to Maven Local
       run: |
         cd libxposed/service
@@ -56,17 +56,23 @@ jobs:
         restore-keys: |
           ${{ runner.os }}-gradle-
 
-    # Step 9: Grant execute permission to Gradle wrapper
+    # Step 9: Update Gradle build to align JVM targets
+    - name: Align JVM targets
+      run: |
+        sed -i '/kotlinOptions {/a \        jvmTarget = "21"' lsposed/build.gradle
+        sed -i '/java {/a \        toolchain {\n            languageVersion = JavaLanguageVersion.of(21)\n        }' lsposed/build.gradle
+
+    # Step 10: Grant execute permission to Gradle wrapper
     - name: Make Gradle wrapper executable
       run: chmod +x lsposed/gradlew
 
-    # Step 10: Build the LSPosed APK
+    # Step 11: Build the LSPosed APK
     - name: Build LSPosed APK
       run: |
         cd lsposed
         ./gradlew assembleDebug
 
-    # Step 11: Upload the APK as a build artifact
+    # Step 12: Upload the APK as a build artifact
     - name: Upload APK
       uses: actions/upload-artifact@v3
       with:
