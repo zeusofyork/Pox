@@ -59,19 +59,31 @@ jobs:
     # Step 9: Locate and update build.gradle dynamically
     - name: Locate and update build.gradle for JVM target alignment
       run: |
-        # Find the correct build.gradle file
-        gradle_file=$(find lsposed -name "build.gradle" | grep -m 1 "module")
+        # Locate build.gradle file
+        gradle_file=$(find lsposed -name "build.gradle" | head -n 1)
         if [ -z "$gradle_file" ]; then
-          echo "build.gradle file not found!"
+          echo "No build.gradle file found in lsposed directory!"
           exit 1
         fi
         echo "Found build.gradle at $gradle_file"
 
         # Add JVM target for Kotlin
-        sed -i '/kotlinOptions {/a \        jvmTarget = "21"' "$gradle_file"
+        if grep -q "kotlinOptions" "$gradle_file"; then
+          sed -i '/kotlinOptions {/a \        jvmTarget = "21"' "$gradle_file"
+          echo "Added jvmTarget to Kotlin options."
+        else
+          echo "No kotlinOptions block found in $gradle_file!"
+          exit 1
+        fi
 
-        # Add Java toolchain to align JVM target
-        sed -i '/java {/a \        toolchain {\n            languageVersion = JavaLanguageVersion.of(21)\n        }' "$gradle_file"
+        # Add Java toolchain configuration
+        if grep -q "java {" "$gradle_file"; then
+          sed -i '/java {/a \        toolchain {\n            languageVersion = JavaLanguageVersion.of(21)\n        }' "$gradle_file"
+          echo "Added Java toolchain configuration."
+        else
+          echo "No java block found in $gradle_file!"
+          exit 1
+        fi
 
     # Step 10: Grant execute permission to Gradle wrapper
     - name: Make Gradle wrapper executable
