@@ -49,7 +49,14 @@ jobs:
         cd libxposed/service
         ./gradlew :interface:publishInterfacePublicationToMavenLocal
 
-    # Step 8: Cache Gradle dependencies
+    # Step 8: Disable R8 and shrinker in the release build
+    - name: Disable R8 for Release Build
+      run: |
+        echo "Disabling R8 and code shrinking for release build..."
+        sed -i 's/minifyEnabled true/minifyEnabled false/' lsposed/app/build.gradle
+        sed -i 's/proguardFiles getDefaultProguardFile.*//' lsposed/app/build.gradle
+
+    # Step 9: Cache Gradle dependencies
     - name: Cache Gradle dependencies
       uses: actions/cache@v3
       with:
@@ -58,14 +65,14 @@ jobs:
         restore-keys: |
           ${{ runner.os }}-gradle-
 
-    # Step 9: Build the LSPosed Release APK
+    # Step 10: Build the LSPosed Release APK
     - name: Build LSPosed Release APK
       run: |
         echo "Building LSPosed Release APK..."
         cd lsposed
         ./gradlew assembleRelease
 
-    # Step 10: Upload the APK as a build artifact
+    # Step 11: Upload the APK as a build artifact
     - name: Upload APK
       uses: actions/upload-artifact@v3
       with:
