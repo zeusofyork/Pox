@@ -18,21 +18,15 @@ jobs:
 
     # Step 2: Clone the LSPosed repository
     - name: Clone LSPosed repository
-      run: |
-        echo "Cloning LSPosed repository..."
-        git clone --depth=1 https://github.com/LSPosed/LSPosed.git lsposed
+      run: git clone --depth=1 https://github.com/LSPosed/LSPosed.git lsposed
 
     # Step 3: Clone libxposed/api
     - name: Clone libxposed API
-      run: |
-        echo "Cloning libxposed API..."
-        git clone --depth=1 https://github.com/libxposed/api.git libxposed/api
+      run: git clone --depth=1 https://github.com/libxposed/api.git libxposed/api
 
     # Step 4: Clone libxposed/service
     - name: Clone libxposed Service
-      run: |
-        echo "Cloning libxposed Service..."
-        git clone --depth=1 https://github.com/libxposed/service.git libxposed/service
+      run: git clone --depth=1 https://github.com/libxposed/service.git libxposed/service
 
     # Step 5: Set up JDK 21
     - name: Set up JDK 21
@@ -41,63 +35,37 @@ jobs:
         java-version: '21'
         distribution: 'temurin'
 
-    # Step 6: Build and publish libxposed API to Maven Local
+    # Step 6: Publish libxposed API to Maven Local
     - name: Publish libxposed API to Maven Local
       run: |
         echo "Publishing libxposed API to Maven Local..."
         cd libxposed/api
         ./gradlew :api:publishApiPublicationToMavenLocal
 
-    # Step 7: Build and publish libxposed Service to Maven Local
+    # Step 7: Publish libxposed Service to Maven Local
     - name: Publish libxposed Service to Maven Local
       run: |
         echo "Publishing libxposed Service to Maven Local..."
         cd libxposed/service
         ./gradlew :interface:publishInterfacePublicationToMavenLocal
 
-    # Step 8: Locate and update build.gradle dynamically
-    - name: Locate and update build.gradle for JVM target alignment
-      run: |
-        echo "Locating build.gradle files..."
-        gradle_files=$(find lsposed -name "build.gradle")
-        if [ -z "$gradle_files" ]; then
-          echo "No build.gradle files found!"
-          exit 0
-        fi
-        echo "Found build.gradle files: $gradle_files"
+    # Step 8: Cache Gradle dependencies
+    - name: Cache Gradle dependencies
+      uses: actions/cache@v3
+      with:
+        path: ~/.gradle/caches
+        key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+        restore-keys: |
+          ${{ runner.os }}-gradle-
 
-        for gradle_file in $gradle_files; do
-          echo "Processing $gradle_file..."
-
-          # Add JVM target for Kotlin
-          if grep -q "kotlinOptions" "$gradle_file"; then
-            sed -i '/kotlinOptions {/a \        jvmTarget = "21"' "$gradle_file"
-            echo "Added jvmTarget to Kotlin options in $gradle_file."
-          else
-            echo "No kotlinOptions block found in $gradle_file!"
-          fi
-
-          # Add Java toolchain configuration
-          if grep -q "java {" "$gradle_file"; then
-            sed -i '/java {/a \        toolchain {\n            languageVersion = JavaLanguageVersion.of(21)\n        }' "$gradle_file"
-            echo "Added Java toolchain configuration in $gradle_file."
-          else
-            echo "No java block found in $gradle_file!"
-          fi
-        done
-
-    # Step 9: Grant execute permission to Gradle wrapper
-    - name: Make Gradle wrapper executable
-      run: chmod +x lsposed/gradlew
-
-    # Step 10: Build the LSPosed APK
+    # Step 9: Build the LSPosed APK
     - name: Build LSPosed APK
       run: |
         echo "Building LSPosed APK..."
         cd lsposed
         ./gradlew assembleDebug
 
-    # Step 11: Upload the APK as a build artifact
+    # Step 10: Upload the APK as a build artifact
     - name: Upload APK
       uses: actions/upload-artifact@v3
       with:
