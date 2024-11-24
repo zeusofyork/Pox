@@ -56,11 +56,22 @@ jobs:
         restore-keys: |
           ${{ runner.os }}-gradle-
 
-    # Step 9: Update Gradle build to align JVM targets
-    - name: Align JVM targets
+    # Step 9: Locate and update build.gradle dynamically
+    - name: Locate and update build.gradle for JVM target alignment
       run: |
-        sed -i '/kotlinOptions {/a \        jvmTarget = "21"' lsposed/build.gradle
-        sed -i '/java {/a \        toolchain {\n            languageVersion = JavaLanguageVersion.of(21)\n        }' lsposed/build.gradle
+        # Find the correct build.gradle file
+        gradle_file=$(find lsposed -name "build.gradle" | grep -m 1 "module")
+        if [ -z "$gradle_file" ]; then
+          echo "build.gradle file not found!"
+          exit 1
+        fi
+        echo "Found build.gradle at $gradle_file"
+
+        # Add JVM target for Kotlin
+        sed -i '/kotlinOptions {/a \        jvmTarget = "21"' "$gradle_file"
+
+        # Add Java toolchain to align JVM target
+        sed -i '/java {/a \        toolchain {\n            languageVersion = JavaLanguageVersion.of(21)\n        }' "$gradle_file"
 
     # Step 10: Grant execute permission to Gradle wrapper
     - name: Make Gradle wrapper executable
